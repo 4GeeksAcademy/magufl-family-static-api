@@ -25,13 +25,39 @@ def sitemap():
     return generate_sitemap(app)
 
 
-@app.route('/members', methods=['GET'])
+@app.route('/members', methods=['GET', 'POST'])
 def handle_hello():
     response_body = {}
-    members = jackson_family.get_all_members()     # this is how you can use the Family datastructure by calling its methods
-    response_body["hello"] = "world"
-    response_body["family"] = members
-    return jsonify(response_body), 200
+    if request.method == 'GET':
+        members = jackson_family.get_all_members()     # this is how you can use the Family datastructure by calling its methods
+        response_body["hello"] = "world"
+        response_body["family"] = members
+        return response_body, 200
+    if request.method == 'POST':
+        data = request.json
+        result = jackson_family.add_member(data)
+        response_body['message'] = 'el endpoint funciona'
+        response_body['results'] = result
+        return response_body, 200
+   
+
+@app.route('/members/<int:id>', methods=['GET', 'DELETE'])
+def handle_members(id):
+    if request.method == 'GET':
+        response_body = {}
+        result = jackson_family.get_member(id)
+        if result:
+            response_body['message'] = 'Usuario encontrado'
+            response_body['resultado'] = result
+            return response_body, 200
+        response_body['message'] = 'Usuario no encontrado'
+        return response_body, 404
+    if request.method == 'DELETE':
+        response_body = {}
+        members = jackson_family.delete_member(id)
+        response_body['message'] = 'el endpoint funciona'
+        response_body["family"] = members
+        return response_body, 200
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
